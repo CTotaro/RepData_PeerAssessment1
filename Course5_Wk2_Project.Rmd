@@ -4,9 +4,18 @@ output: html_document
 ---
 ```{r "setup", include = FALSE}
 require("knitr")
-opts_knit$set(root.dir = "C:/Users/totaroc/Documents")
+opts_knit$set(root.dir = "C:/Users/Christopher/Desktop/Files Not Yet Backed-up/R Files/Course 5/RepData_PeerAssessment1")
 ```
 
+```{r no sci_notattion}
+inline_hook <- function(x) {
+  if (is.numeric(x)) {
+    format(x, digits = 2)
+  } else x
+}
+knitr::knit_hooks$set(inline = inline_hook)
+
+```
 
 ##Load and Pre-process the Data
 Here we need to convert the data into a form suitable for analysis.  I notice that the date column is of
@@ -17,18 +26,18 @@ data <- read.csv("activity.csv")
 
 #convert to date and numeric types classes.
 data$steps <- as.numeric(data$steps)
-as.Date(data$date)
+data$date <- as.Date(data$date)
 data$interval <- as.numeric(data$interval)
 ```
 
 ## What is mean total number of steps taken per day?
 ```{r Mean Steps, echo=TRUE}
 cleandata <- data[is.na(data$steps)==FALSE,]
-tapply(cleandata$steps, cleandata$date, sum)
+mean_steps <- tapply(cleandata$steps, cleandata$date, sum)
 hist(tapply(cleandata$steps, cleandata$date, sum), main = "Histogram of Steps/Day")
 
-AvgSteps <- mean(tapply(cleandata$steps, cleandata$date, sum), na.rm=TRUE)
-MedSteps <- median(tapply(cleandata$steps, cleandata$date, sum), na.rm=TRUE)
+AvgSteps <- mean(mean_steps, na.rm=TRUE)
+MedSteps <- median(mean_steps, na.rm=TRUE)
 ```
 
 Mean Total Daily Steps = `r AvgSteps` steps  
