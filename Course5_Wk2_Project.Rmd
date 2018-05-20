@@ -10,7 +10,7 @@ opts_knit$set(root.dir = "C:/Users/Christopher/Desktop/Files Not Yet Backed-up/R
 ```{r no sci_notattion}
 inline_hook <- function(x) {
   if (is.numeric(x)) {
-    format(x, digits = 2)
+    format(x, digits = 4)
   } else x
 }
 knitr::knit_hooks$set(inline = inline_hook)
@@ -34,7 +34,10 @@ data$interval <- as.numeric(data$interval)
 ```{r Mean Steps, echo=TRUE}
 cleandata <- data[is.na(data$steps)==FALSE,]
 mean_steps <- tapply(cleandata$steps, cleandata$date, sum)
-hist(tapply(cleandata$steps, cleandata$date, sum), main = "Histogram of Steps/Day")
+hist(tapply(cleandata$steps, cleandata$date, sum), main = "Histogram of Steps/Day", breaks=seq(0,25000,1000))
+
+mean(mean_steps, na.rm=TRUE)
+median(mean_steps, na.rm=TRUE)
 
 AvgSteps <- mean(mean_steps, na.rm=TRUE)
 MedSteps <- median(mean_steps, na.rm=TRUE)
@@ -55,3 +58,57 @@ MaxInterval <- AvgSteps5min[which.max(AvgSteps5min$AverageSteps),1]
 ```
 
 The 5-minute interval with the highest average number of steps is `r MaxInterval` with `r which.max(AvgSteps5min$AverageSteps)` steps.
+
+## Impute Missing Values
+```{r CreateImputeCol, echo=TRUE}
+names(data) <- c("Steps","Date","Interval")
+data$ImputedSteps <- data$Steps
+head(data)
+```
+Notice above that the values of ImputedSteps column are all NA. 
+
+Now we will impute values using the calculated averagesby 5-minute interval.
+```{r ImputeValue, echo=TRUE}
+for(i in which(is.na(data$Steps))){
+    data$ImputedSteps[i] <- AvgSteps5min$AverageSteps[which(AvgSteps5min$Interval == data$Interval[i] )]
+}
+
+head(data)
+```
+Notice now how the values of ImputedSteps column are filled in with average values  
+taken from the AvgSteps5min table.
+
+```{r ImputeHisto, echo=TRUE}
+hist(tapply(data$ImputedSteps, data$Date, sum), main = "Histogram of Steps/Day", breaks=seq(0,25000,1000))
+ImputedAvgSteps <- tapply(data$ImputedSteps, data$Date, sum)
+
+ImputedMean <- mean(ImputedAvgSteps)
+ImputedMed <- median(ImputedAvgSteps)
+```
+
+The imputed mean number of steps taken per day is `r ImputedMean` steps.  
+The imputed median number of steps taken per day is `r ImputedMed` steps.  
+
+Notice that the mean didn't change with the imputed values, but the median change from
+`r MedSteps` steps to `r ImputedMed` steps.
+
+## Are there differences in activity patterns between weekdays and weekends?
+```{r Weekdays, echo = TRUE}
+library(lubridate)
+data$Day <- weekdays(as.POSIXct(data$Date))
+data$DayNumber <- wday(as.POSIXct(data$Date))
+for(i in 1:dim(data)[1]){
+
+if(data$DayNumber[i] == 1){
+    data$Weekend[i] <- "Weekend"
+} else if(data$DayNumber[i] == 7){
+    data$Weekend[i] <- "Weekend"
+} else { data$Weekend[i] <- "Weekday"}
+}
+
+WkDayAvgSteps5min <- aggregate(ImputedSteps ~ Weekend + Interval, data = data, FUN = mean)
+
+library(lattice)
+data <- transform(data, Weekend = factor(Weekend))
+xyplot(ImputedSteps ~ Interval | Weekend, data = WkDayAvgSteps5min , layout = c(1,2), type = "l")
+```
