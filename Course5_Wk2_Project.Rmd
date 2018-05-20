@@ -42,3 +42,16 @@ MedSteps <- median(mean_steps, na.rm=TRUE)
 
 Mean Total Daily Steps = `r AvgSteps` steps  
 Median Total Daily Steps = `r MedSteps` steps
+
+## What is the average daily activity pattern?
+```{r Avg. Daily activity Pattern, echo=TRUE}
+
+AvgSteps5min <- aggregate( cleandata$steps ~ cleandata$interval, FUN = mean)
+names(AvgSteps5min) <- c("Interval","AverageSteps")
+head(AvgSteps5min)
+
+plot(AvgSteps5min$Interval, AvgSteps5min$AverageSteps, type = "l", xlab = "5-minute Interval", ylab = "Avg. Steps")
+MaxInterval <- AvgSteps5min[which.max(AvgSteps5min$AverageSteps),1]
+```
+
+The 5-minute interval with the highest average number of steps is `r MaxInterval` with `r which.max(AvgSteps5min$AverageSteps)` steps.
