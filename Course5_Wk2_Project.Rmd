@@ -1,0 +1,35 @@
+---
+title: "Course 5 Week 2 Project"
+output: html_document
+---
+```{r "setup", include = FALSE}
+require("knitr")
+opts_knit$set(root.dir = "C:/Users/totaroc/Documents")
+```
+
+
+##Load and Pre-process the Data
+Here we need to convert the data into a form suitable for analysis.  I notice that the date column is of
+thetype 'factor' and the other two columns are of the type "int".  I convert the date column to a 'date'
+class and the other two columns to the "numeric" class.
+```{r load_data, echo=TRUE}
+data <- read.csv("activity.csv")
+
+#convert to date and numeric types classes.
+data$steps <- as.numeric(data$steps)
+as.Date(data$date)
+data$interval <- as.numeric(data$interval)
+```
+
+## What is mean total number of steps taken per day?
+```{r Mean Steps, echo=TRUE}
+cleandata <- data[is.na(data$steps)==FALSE,]
+tapply(cleandata$steps, cleandata$date, sum)
+hist(tapply(cleandata$steps, cleandata$date, sum), main = "Histogram of Steps/Day")
+
+AvgSteps <- mean(tapply(cleandata$steps, cleandata$date, sum), na.rm=TRUE)
+MedSteps <- median(tapply(cleandata$steps, cleandata$date, sum), na.rm=TRUE)
+```
+
+Mean Total Daily Steps = `r AvgSteps` steps  
+Median Total Daily Steps = `r MedSteps` steps
